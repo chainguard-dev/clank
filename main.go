@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -18,32 +19,77 @@ import (
 func main() {
 	ctx := context.Background()
 
-	f, err := os.Open(os.Args[1])
-	if err != nil {
-		log.Fatal(err)
-	}
-	n := new(yaml.Node)
-	if err := yaml.NewDecoder(f).Decode(n); err != nil {
-		log.Fatal(err)
-	}
-
-	parse := parser.Actions{}
-	reflist, err := parse.Parse(n)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	tmp, err := os.MkdirTemp("", "backlash-*")
+	tmp, err := os.MkdirTemp("", "clank-*")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer os.RemoveAll(tmp)
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Ref", "Status", "Lines", "Details"})
+	for _, arg := range os.Args[1:] {
+		if err := filepath.Walk(arg,
+			func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if info.IsDir() {
+					return nil
+				}
+				fmt.Println(path)
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetHeader([]string{"Ref", "Status", "Lines", "Details"})
+				f, err := os.Open(path)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				details, err := handle(ctx, f, tmp)
+				if err != nil {
+					return err
+				}
 
+				for _, d := range details {
+					if d.err == nil {
+						table.Append([]string{d.ref, color.GreenString("OK"), fmt.Sprint(d.lines), ""})
+					} else {
+						table.Append([]string{d.ref, color.RedString("ERROR"), fmt.Sprint(d.lines), d.err.Error()})
+					}
+				}
+				table.Render()
+				fmt.Println()
+
+				return nil
+			}); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+type details struct {
+	ref   string
+	lines []int
+	err   error
+}
+
+func handle(ctx context.Context, r io.Reader, tmp string) ([]details, error) {
+	n := new(yaml.Node)
+	if err := yaml.NewDecoder(r).Decode(n); err != nil {
+		return nil, err
+	}
+
+	parse := parser.Actions{}
+	reflist, err := parse.Parse(n)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]details, 0, len(reflist.All()))
 	for ref, nodes := range reflist.All() {
 		ref := ref
+
+		if !strings.HasPrefix(ref, "actions://") {
+			continue
+		}
+
 		s := strings.Split(strings.TrimPrefix(ref, "actions://"), "@")
 		if len(s) != 2 {
 			log.Printf("wanted len() = 2, got %v", s)
@@ -55,17 +101,14 @@ func main() {
 		for _, n := range nodes {
 			lines = append(lines, n.Line)
 		}
-		log.Println(repo, sha)
 
-		if err := checkRepo(ctx, repo[0], repo[1], sha, tmp); err == nil {
-			table.Append([]string{ref, color.GreenString("OK"), "", ""})
-		} else {
-			fmt.Println(repo, sha, err)
-			table.Append([]string{ref, color.RedString("ERROR"), fmt.Sprint(lines), err.Error()})
-		}
+		out = append(out, details{
+			ref:   ref,
+			lines: lines,
+			err:   checkRepo(ctx, repo[0], repo[1], sha, tmp),
+		})
 	}
-
-	table.Render()
+	return out, nil
 }
 
 func checkRepo(ctx context.Context, owner, repo, sha, basedir string) error {
