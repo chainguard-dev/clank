@@ -26,12 +26,27 @@ func main() {
 	defer os.RemoveAll(tmp)
 
 	for _, arg := range os.Args[1:] {
-		if err := filepath.Walk(arg,
+		dir := arg
+
+		if strings.HasPrefix(arg, "https://") {
+			s := strings.Split(arg, "/")
+			cloneDir := filepath.Join(tmp, s[3], s[4])
+
+			if out, err := exec.CommandContext(ctx, "git", "clone", "--depth", "1", arg, cloneDir).CombinedOutput(); err != nil {
+				log.Fatalf("could not clone repo: %s %s", err, string(out))
+			}
+			dir = filepath.Join(cloneDir, ".github", "workflows")
+		}
+
+		if err := filepath.Walk(dir,
 			func(path string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
 				if info.IsDir() {
+					return nil
+				}
+				if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
 					return nil
 				}
 				fmt.Println(path)
