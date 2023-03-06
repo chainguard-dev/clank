@@ -127,22 +127,42 @@ func handle(ctx context.Context, r io.Reader, tmp string) ([]details, error) {
 }
 
 func checkRepo(ctx context.Context, owner, repo, sha, basedir string) error {
-	url := fmt.Sprintf("https://github.com/%s/%s", owner, repo)
 	dir := filepath.Join(basedir, owner, repo)
-
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if out, err := exec.CommandContext(ctx, "git", "clone", "--filter=tree:0", "-c remote.origin.fetch=+refs/heads/*:refs/heads/*", url, dir).CombinedOutput(); err != nil {
-			return fmt.Errorf("could not clone repo: %s", out)
+		// Disable prompting for password
+		os.Setenv("GIT_TERMINAL_PROMPT", "false")
+
+		var cloneErr error
+		for _, url := range []string{
+			// https
+			fmt.Sprintf("https://github.com/%s/%s.git", owner, repo),
+			// ssh
+			fmt.Sprintf("git@github.com:%s/%s.git", owner, repo),
+		} {
+			cmd := exec.CommandContext(ctx, "git", "clone", "--quiet", "--filter=tree:0", url, dir)
+			out, err := cmd.CombinedOutput()
+			if err == nil {
+				cloneErr = nil
+				break
+			} else {
+				cloneErr = fmt.Errorf("could not clone repo: %s", out)
+			}
 		}
-		if out, err := exec.CommandContext(ctx, "git", "-C", dir, "remote", "remove", "origin").CombinedOutput(); err != nil {
-			return fmt.Errorf("could not remove remote: %s", out)
+		if cloneErr != nil {
+			return cloneErr
 		}
 	}
 
-	if out, err := exec.CommandContext(ctx, "git", "-C", dir, "cat-file", "-e", sha).CombinedOutput(); err != nil {
-		log.Println("cat-file", url, dir, sha, string(out))
-		return fmt.Errorf("SHA not present in repo")
+	for _, ref := range []string{"branch", "tag"} {
+		cmd := exec.CommandContext(ctx, "git", "-C", dir, ref, "--quiet", "--contains", sha)
+		out, err := cmd.Output()
+		if err != nil {
+			return fmt.Errorf("SHA not present in repo")
+		}
+		if len(out) > 0 {
+			return nil
+		}
 	}
 
-	return nil
+	return fmt.Errorf("SHA not present in repo")
 }
