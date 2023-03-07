@@ -154,7 +154,7 @@ func checkRepo(ctx context.Context, owner, repo, sha, basedir string) error {
 	}
 
 	for _, ref := range []string{"branch", "tag"} {
-		cmd := exec.CommandContext(ctx, "git", "-C", dir, ref, "--quiet", "--contains", sha)
+		cmd := exec.CommandContext(ctx, "git", "-C", dir, ref, "--contains", sha)
 		out, err := cmd.Output()
 		if err != nil {
 			return fmt.Errorf("SHA not present in repo")
