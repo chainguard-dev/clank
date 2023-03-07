@@ -270,8 +270,7 @@ func checkImposterCommit(ctx context.Context, c *github.Client, owner, repo, tar
 func refContains(ctx context.Context, c *github.Client, owner, repo, base, target string) (bool, error) {
 	diff, resp, err := c.Repositories.CompareCommits(ctx, owner, repo, base, target, &github.ListOptions{PerPage: 1})
 	if err != nil {
-		switch resp.StatusCode {
-		case http.StatusNotFound:
+		if resp.StatusCode == http.StatusNotFound {
 			// NotFound can be returned for some divergent cases: "404 No common ancestor between ..."
 			return false, nil
 		}
