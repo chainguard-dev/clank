@@ -3,7 +3,7 @@ module github.com/chainguard-dev/clank
 go 1.20
 
 require (
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.14.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/sethvargo/ratchet v0.3.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -20,8 +20,8 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/mattn/go-colorable v0.1.11 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
