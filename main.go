@@ -17,11 +17,17 @@ import (
 )
 
 func main() {
+	if err := mainImpl(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func mainImpl() error {
 	ctx := context.Background()
 
 	tmp, err := os.MkdirTemp("", "clank-*")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer os.RemoveAll(tmp)
 
@@ -33,7 +39,7 @@ func main() {
 			cloneDir := filepath.Join(tmp, s[3], s[4])
 
 			if out, err := exec.CommandContext(ctx, "git", "clone", "--depth", "1", arg, cloneDir).CombinedOutput(); err != nil {
-				log.Fatalf("could not clone repo: %s %s", err, string(out))
+				return fmt.Errorf("could not clone repo: %w %s", err, string(out))
 			}
 			dir = filepath.Join(cloneDir, ".github", "workflows")
 		}
@@ -57,6 +63,7 @@ func main() {
 					return err
 				}
 				defer f.Close()
+
 				details, err := handle(ctx, f, tmp)
 				if err != nil {
 					return err
@@ -69,14 +76,17 @@ func main() {
 						table.Append([]string{d.ref, color.RedString("ERROR"), fmt.Sprint(d.lines), d.err.Error()})
 					}
 				}
+
 				table.Render()
 				fmt.Println()
 
 				return nil
 			}); err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
+
+	return nil
 }
 
 type details struct {
