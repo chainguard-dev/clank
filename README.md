@@ -3,6 +3,9 @@
 clank is a simple tool that allows you to detect imposter commits in GitHub
 Actions workflows.
 
+This is primarily a proof-of-concept - our aim is to upstream this check to
+[OpenSSF Scorecards](https://github.com/ossf/scorecard).
+
 The name is inspired by https://github.com/sethvargo/ratchet.
 
 ## Installation
@@ -63,18 +66,15 @@ $ clank https://github.com/sigstore/cosign
 
 ## Authentication
 
-clank uses your path's `git` binary to fetch repos into temporary directories,
-using the same credentials as if you ran `git clone`.
+clank looks for an access token to be passed in via the `GITHUB_TOKEN`
+environment variable. This token is used to fetch content and compute diffs.
 
-## Known issues
+While clank can be used against public repos without a token, you may run into
+rate limiting without it.
 
-### Security keys
+The easiest way to get a token is to run:
 
-While clank does work with cloning via security keys, the input prompt does not
-show up (since feeding stderr to the terminal causes a lot of noise). To work
-around this:
-
-- If you know you will need use a security key for cloning, security key taps
-  will still be recognized even if the prompt doesn't show up.
-- Consider using an alternative fetching mechanism such as a
-  [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#using-a-personal-access-token-on-the-command-line).
+```sh
+$ export GITHUB_TOKEN=`gh auth token`
+$ clank ./testdata
+```
