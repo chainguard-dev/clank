@@ -29,7 +29,12 @@ jobs:
       - name: build
         run: go build ./...
 
-      - name: run clank
-        run: ./clank testdata/push.yaml
+      - name: run clank - failure
+        run: "! ./clank testdata/push.yaml"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: run clank - success
+        run: ./clank .github/workflows
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
