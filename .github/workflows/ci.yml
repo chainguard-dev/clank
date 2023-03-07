@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
 env:
   GO_VERSION: '1.20.x'
 
@@ -28,3 +31,5 @@ jobs:
 
       - name: run clank
         run: ./clank testdata/push.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
