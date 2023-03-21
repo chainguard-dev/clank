@@ -81,6 +81,10 @@ func mainImpl() error {
 				if err != nil {
 					return fmt.Errorf("unable to parse workflow: %w", err)
 				}
+				if len(w.Refs()) == 0 {
+					// No refs found, so nothing to check.
+					return nil
+				}
 
 				details, err := handle(ctx, client, w)
 				if err != nil {
