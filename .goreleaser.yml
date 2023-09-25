@@ -11,8 +11,8 @@ before:
     - go mod tidy
     - /bin/bash -c 'if [ -n "$(git --no-pager diff --exit-code go.mod go.sum)" ]; then exit 1; fi'
 
-gomod:
-  proxy: true
+#gomod:
+#  proxy: true
 
 sboms:
   - artifacts: binary
@@ -58,7 +58,7 @@ kos:
     main: .
     working_dir: .
     base_image: cgr.dev/chainguard/static:latest
-    repository: ghcr.io/chainguard/clank
+    repository: ghcr.io/cpanato/clank
     platforms:
       - linux/amd64
       - linux/arm64
@@ -72,7 +72,8 @@ kos:
     flags:
       - -trimpath
     preserve_import_paths: false
-    base_import_paths: true
+    base_import_paths: false
+    bare: true
 
 docker_signs:
   - artifacts: manifests
@@ -94,5 +95,5 @@ snapshot:
 release:
   draft: true
   github:
-    owner: chainguard
+    owner: cpanato
     name: clank
