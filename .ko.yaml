@@ -1,0 +1,15 @@
+# Copyright 2023 Chainguard, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+defaultBaseImage: cgr.dev/chainguard/static:latest
+
+builds:
+  - id: clank
+    dir: .
+    main: .
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -extldflags "-static"
