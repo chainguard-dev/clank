@@ -21,8 +21,10 @@ import (
 )
 
 func main() {
-	if err := mainImpl(); err != nil {
-		log.Fatal(err)
+	err := mainImpl()
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(1)
 	}
 }
 
@@ -186,10 +188,7 @@ func getContent(ctx context.Context, client *github.Client, owner, repo, localPa
 			return err
 		}
 
-		if err := os.WriteFile(filepath.Join(localPath, file.GetPath()), []byte(data), 0600); err != nil {
-			return err
-		}
-		return nil
+		return os.WriteFile(filepath.Join(localPath, file.GetPath()), []byte(data), 0o600)
 	}
 
 	// If directory, recursively traverse.

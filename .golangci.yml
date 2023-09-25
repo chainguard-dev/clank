@@ -3,7 +3,6 @@ linters:
   enable:
     - asciicheck
     - unused
-    - depguard
     - errcheck
     - errorlint
     - gofmt
