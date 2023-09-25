@@ -58,7 +58,7 @@ kos:
     main: .
     working_dir: .
     base_image: cgr.dev/chainguard/static:latest
-    repository: ghcr.io/chainguard/clank
+    repository: ghcr.io/chainguard-dev/clank
     platforms:
       - linux/amd64
       - linux/arm64
@@ -71,8 +71,9 @@ kos:
       - -extldflags "-static"
     flags:
       - -trimpath
-    preserve_import_paths: true
-    base_import_paths: true
+    preserve_import_paths: false
+    base_import_paths: false
+    bare: true
 
 docker_signs:
   - artifacts: manifests
@@ -94,5 +95,5 @@ snapshot:
 release:
   draft: true
   github:
-    owner: chainguard
+    owner: chainguard-dev
     name: clank
