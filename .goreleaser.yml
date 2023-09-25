@@ -71,7 +71,7 @@ kos:
       - -extldflags "-static"
     flags:
       - -trimpath
-    preserve_import_paths: true
+    preserve_import_paths: false
     base_import_paths: true
 
 docker_signs:
