@@ -7,7 +7,7 @@ require (
 	github.com/google/go-github/v50 v50.2.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/sethvargo/ratchet v0.4.0
-	golang.org/x/oauth2 v0.19.0
+	golang.org/x/oauth2 v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
