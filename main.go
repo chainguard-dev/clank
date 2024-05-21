@@ -12,12 +12,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	// Using banydonk/yaml instead of the default yaml pkg because the default
+	// pkg incorrectly escapes unicode. https://github.com/go-yaml/yaml/issues/737
+	// comment from https://github.com/sethvargo/ratchet/blob/main/parser/parser.go#L11
+	"github.com/braydonk/yaml"
 	"github.com/fatih/color"
 	"github.com/google/go-github/v50/github"
 	"github.com/olekukonko/tablewriter"
 	"github.com/sethvargo/ratchet/parser"
 	"golang.org/x/oauth2"
-	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -136,7 +139,7 @@ func parseWorkflow(path string) (*parser.RefsList, error) {
 	}
 
 	parse := parser.Actions{}
-	return parse.Parse(n)
+	return parse.Parse([]*yaml.Node{n})
 }
 
 func handle(ctx context.Context, client *github.Client, workflow *parser.RefsList) ([]details, error) {
